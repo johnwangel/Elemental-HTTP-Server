@@ -15,25 +15,26 @@ server.on('request', (request, response) => {
     body += chunk;
   });
 
+  let headers = {};
+  let directory = `./public`;
+
   request.on('end', () => {
     let fullText = body.toString();
     switch (thisMethod) {
       case 'POST':
         processPost(fullText);
-        let headers = { 'Content-Type' : 'text/html', 'success': true  };
+        headers = { 'Content-Type' : 'text/html', 'success': true  };
         response.writeHead(200, 'OK', headers);
         response.end();
         break;
       case 'GET':
         if (thisURL === '/') { thisURL = '/index.html'; }
         let filePath = `./public${thisURL}`;
-        let directory = `./public`;
-        console.log(thisURL);
 
         if (thisURL === '/css/styles.css'){
           fs.readFile(filePath, 'utf8', (err, data) => {
             if (err) throw err;
-            let headers = { 'Content-Type' : 'text/css', 'success': true  };
+            headers = { 'Content-Type' : 'text/css', 'success': true  };
             response.writeHead(200, 'OK', headers);
             response.write(data, 'utf8', () => {
               response.end();
@@ -42,20 +43,21 @@ server.on('request', (request, response) => {
         } else {
           fs.readdir(directory, 'utf8', (err, list) => {
             if (err) throw err;
-            if (!list.some( files => files ===  thisURL.slice(1) ) ) {
-
-              let filePath = `./public/404.html`;
+            thisURL = thisURL.slice(1);
+            if (list.some( files => files ===  thisURL ) ) {
               fs.readFile(filePath, 'utf8', (err, data) => {
                 let headers = { 'Content-Type' : 'text/html', 'success': true  };
-                response.writeHead(404, 'Not Found', headers);
+                response.writeHead(200, 'OK', headers);
                 response.write(data, 'utf8', () => {
                   response.end();
                 });
               });
+
             } else {
+              let filePath = `./public/404.html`;
               fs.readFile(filePath, 'utf8', (err, data) => {
-                let headers = { 'Content-Type' : 'text/html', 'success': true  };
-                response.writeHead(200, 'OK', headers);
+                headers = { 'Content-Type' : 'text/html', 'success': true  };
+                response.writeHead(404, 'Not Found', headers);
                 response.write(data, 'utf8', () => {
                   response.end();
                 });
@@ -65,6 +67,23 @@ server.on('request', (request, response) => {
         }
         break;
       case 'PUT':
+        if (!fieldsExist(fullText)) {
+          sendError(response);
+          return;
+        }
+        //remove slash before URL for comparing
+        thisURL = thisURL.slice(1);
+        fs.readdir(directory, 'utf8', (err, list) => {
+          if (err) throw err;
+          if (list.some( files => files ===  thisURL ) ) {
+            processPost(fullText);
+          } else {
+            sendError(response);
+            return;
+          }
+        });
+        break;
+      case 'DELETE':
 
         break;
       default:
@@ -80,6 +99,20 @@ server.on('request', (request, response) => {
 });
 
 server.listen(9000);
+
+function sendError(response){
+  let headers = { 'Content-Type' : 'text/html', 'success': false  };
+  response.writeHead(500, 'Not Found', headers);
+  response.end();
+}
+
+function fieldsExist( fullText ) {
+  let parsedText = qs.parse(fullText);
+  if (parsedText.elementName && parsedText.elementSymbol && parsedText.elementAtomicNumber && parsedText.elementDescription){
+    return true;
+  }
+  return false;
+}
 
 function processPost(fullText){
 

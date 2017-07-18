@@ -1,0 +1,23 @@
+{
+  "name": "httpserver",
+  "version": "0.0.1",
+  "description": "### Basic HTTP Server that reads from and writes to fs",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/johnwangel/Elemental-HTTP-Server.git"
+  },
+  "author": "John A",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/johnwangel/Elemental-HTTP-Server/issues"
+  },
+  "homepage": "https://github.com/johnwangel/Elemental-HTTP-Server#readme",
+  "dependencies": {
+    "postman": "^0.2.0"
+  }
+}
